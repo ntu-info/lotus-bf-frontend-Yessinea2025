@@ -1,5 +1,5 @@
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import { Terms } from './components/Terms'
 import { QueryBuilder } from './components/QueryBuilder'
 import { Studies } from './components/Studies'
@@ -17,44 +17,98 @@ export default function App () {
   // --- resizable panes state ---
   const gridRef = useRef(null)
   const [sizes, setSizes] = useState([28, 44, 28]) // [left, middle, right]
-  const MIN_PX = 240
+  const [mobileHeights, setMobileHeights] = useState([33, 34, 33]); // % heights for mobile
+  const MIN_MOBILE_PX = 80;
 
+  // Detect mobile view (responsive)
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
+  )
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 1023px)')
+    const update = () => setIsMobile(mq.matches)
+    update() // initial check
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  // Desktop drag (horizontal)
   const startDrag = (which, e) => {
-    e.preventDefault()
-    const startX = e.clientX
-    const rect = gridRef.current.getBoundingClientRect()
-    const total = rect.width
-    const curPx = sizes.map(p => (p / 100) * total)
-
+    if (isMobile) return;
+    e.preventDefault();
+    const startX = e.clientX;
+    const rect = gridRef.current.getBoundingClientRect();
+    const total = rect.width;
+    const curPx = sizes.map(p => (p / 100) * total);
     const onMouseMove = (ev) => {
-      const dx = ev.clientX - startX
+      const dx = ev.clientX - startX;
       if (which === 0) {
-        let newLeft = curPx[0] + dx
-        let newMid = curPx[1] - dx
-        if (newLeft < MIN_PX) { newMid -= (MIN_PX - newLeft); newLeft = MIN_PX }
-        if (newMid < MIN_PX) { newLeft -= (MIN_PX - newMid); newMid = MIN_PX }
-        const s0 = (newLeft / total) * 100
-        const s1 = (newMid / total) * 100
-        const s2 = 100 - s0 - s1
-        setSizes([s0, s1, Math.max(s2, 0)])
+        let newLeft = curPx[0] + dx;
+        let newMid = curPx[1] - dx;
+        if (newLeft < 240) { newMid -= (240 - newLeft); newLeft = 240; }
+        if (newMid < 240) { newLeft -= (240 - newMid); newMid = 240; }
+        const s0 = (newLeft / total) * 100;
+        const s1 = (newMid / total) * 100;
+        const s2 = 100 - s0 - s1;
+        setSizes([s0, s1, Math.max(s2, 0)]);
       } else {
-        let newMid = curPx[1] + dx
-        let newRight = curPx[2] - dx
-        if (newMid < MIN_PX) { newRight -= (MIN_PX - newMid); newMid = MIN_PX }
-        if (newRight < MIN_PX) { newMid -= (MIN_PX - newRight); newRight = MIN_PX }
-        const s1 = (newMid / total) * 100
-        const s2 = (newRight / total) * 100
-        const s0 = (curPx[0] / total) * 100
-        setSizes([s0, s1, Math.max(s2, 0)])
+        let newMid = curPx[1] + dx;
+        let newRight = curPx[2] - dx;
+        if (newMid < 240) { newRight -= (240 - newMid); newMid = 240; }
+        if (newRight < 240) { newMid -= (240 - newRight); newRight = 240; }
+        const s1 = (newMid / total) * 100;
+        const s2 = (newRight / total) * 100;
+        const s0 = (curPx[0] / total) * 100;
+        setSizes([s0, s1, Math.max(s2, 0)]);
       }
-    }
+    };
     const onMouseUp = () => {
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
-    }
-    window.addEventListener('mousemove', onMouseMove)
-    window.addEventListener('mouseup', onMouseUp)
-  }
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  // Mobile drag (vertical)
+  const startMobileDrag = (which, e) => {
+    if (!isMobile) return;
+    e.preventDefault();
+    const startY = e.clientY;
+    const grid = gridRef.current;
+    const total = grid ? grid.getBoundingClientRect().height : window.innerHeight;
+    const curPx = mobileHeights.map(p => (p / 100) * total);
+    const onMouseMove = (ev) => {
+      const dy = ev.clientY - startY;
+      if (which === 0) {
+        let newTop = curPx[0] + dy;
+        let newMid = curPx[1] - dy;
+        if (newTop < MIN_MOBILE_PX) { newMid -= (MIN_MOBILE_PX - newTop); newTop = MIN_MOBILE_PX; }
+        if (newMid < MIN_MOBILE_PX) { newTop -= (MIN_MOBILE_PX - newMid); newMid = MIN_MOBILE_PX; }
+        const s0 = (newTop / total) * 100;
+        const s1 = (newMid / total) * 100;
+        const s2 = 100 - s0 - s1;
+        setMobileHeights([s0, s1, Math.max(s2, 0)]);
+      } else {
+        let newMid = curPx[1] + dy;
+        let newBot = curPx[2] - dy;
+        if (newMid < MIN_MOBILE_PX) { newBot -= (MIN_MOBILE_PX - newMid); newMid = MIN_MOBILE_PX; }
+        if (newBot < MIN_MOBILE_PX) { newMid -= (MIN_MOBILE_PX - newBot); newBot = MIN_MOBILE_PX; }
+        const s1 = (newMid / total) * 100;
+        const s2 = (newBot / total) * 100;
+        const s0 = (curPx[0] / total) * 100;
+        setMobileHeights([s0, s1, Math.max(s2, 0)]);
+      }
+    };
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
 
   return (
     <div className="app">
@@ -152,25 +206,41 @@ export default function App () {
       </header>
 
       <main className="app__grid" ref={gridRef}>
-        <section className="card" style={{ flexBasis: `${sizes[0]}%` }}>
-          <div className="card__title">Terms</div>
-          <Terms onPickTerm={handlePickTerm} />
-        </section>
-
-        <div className="resizer" aria-label="Resize left/middle" onMouseDown={(e) => startDrag(0, e)} />
-
-        <section className="card card--stack" style={{ flexBasis: `${sizes[1]}%` }}>
-          <QueryBuilder query={query} setQuery={setQuery} />
-          {/* <div className="hint">Current Query：<code className="hint__code">{query || '(empty)'}</code></div> */}
-          <div className="divider" />
-          <Studies query={query} />
-        </section>
-
-        <div className="resizer" aria-label="Resize middle/right" onMouseDown={(e) => startDrag(1, e)} />
-
-        <section className="card" style={{ flexBasis: `${sizes[2]}%` }}>
-          <NiiViewer query={query} />
-        </section>
+        {isMobile ? (
+          <>
+            <section className="card" style={{ height: `${Math.max(mobileHeights[0], 15)}%`, minHeight: 80 }}>
+              <div className="card__title">Terms</div>
+              <Terms onPickTerm={handlePickTerm} />
+            </section>
+            <div className="resizer resizer-horizontal" aria-label="Resize top/middle" />
+            <section className="card card--stack" style={{ height: `${Math.max(mobileHeights[1], 15)}%`, minHeight: 80 }}>
+              <QueryBuilder query={query} setQuery={setQuery} />
+              <div className="divider" />
+              <Studies query={query} />
+            </section>
+            <div className="resizer resizer-horizontal" aria-label="Resize middle/bottom" />
+            <section className="card" style={{ height: `${Math.max(mobileHeights[2], 15)}%`, minHeight: 80 }}>
+              <NiiViewer query={query} />
+            </section>
+          </>
+        ) : (
+          <>
+            <section className="card" style={{ flexBasis: `${sizes[0]}%` }}>
+              <div className="card__title">Terms</div>
+              <Terms onPickTerm={handlePickTerm} />
+            </section>
+            <div className="resizer" aria-label="Resize left/middle" onMouseDown={(e) => startDrag(0, e)} />
+            <section className="card card--stack" style={{ flexBasis: `${sizes[1]}%` }}>
+              <QueryBuilder query={query} setQuery={setQuery} />
+              <div className="divider" />
+              <Studies query={query} />
+            </section>
+            <div className="resizer" aria-label="Resize middle/right" onMouseDown={(e) => startDrag(1, e)} />
+            <section className="card" style={{ flexBasis: `${sizes[2]}%` }}>
+              <NiiViewer query={query} />
+            </section>
+          </>
+        )}
       </main>
     </div>
   )

@@ -411,27 +411,54 @@ const coord2idx = (c_mm, n, axis) => {
       <div className='rounded-xl border p-3 text-sm'>
         <label className='flex items-center gap-2'>
           <span>Threshold mode</span>
-          <select value={thrMode} onChange={e=>setThrMode(e.target.value)} className='rounded-lg border px-2 py-1'>
+          <select
+            value={thrMode}
+            onChange={e=>setThrMode(e.target.value)}
+            className='rounded-lg border px-2 py-1'
+            style={{ width: '4.5rem', height: '1.75rem', fontSize: '1rem' }}
+          >
             <option value='value'>Value</option>
             <option value='pctl'>Percentile</option>
           </select>
         </label>
-        <br />
+        
         {thrMode === 'value' ? (
           <>
             <label className='flex items-center gap-2'>
               <span>Threshold</span>
-              <input type='number' step='0.01' value={thrValue} onChange={e=>setThrValue(Number(e.target.value))} className='w-28 rounded-lg border px-2 py-1' />
+              <input
+                type='number'
+                step='0.01'
+                value={thrValue}
+                onChange={e=>setThrValue(Number(e.target.value))}
+                className='w-28 rounded-lg border px-2 py-1'
+                style={{ fontSize: 'inherit' }}
+              />
+              <button type='button' className='px-2 py-1 rounded border ml-1' onClick={()=>setThrValue(v=>Math.round((v+0.01)*100)/100)}>⮝</button>
+              <button type='button' className='px-2 py-1 rounded border' onClick={()=>setThrValue(v=>Math.round((v-0.01)*100)/100)}>⮟</button>
             </label>
             <br />
+            <div style={{ height: '18px' }}></div>
           </>
         ) : (
           <>
             <label className='flex items-center gap-2'>
               <span>Percentile</span>
-              <input type='number' min={50} max={99.9} step={0.5} value={pctl} onChange={e=>setPctl(Number(e.target.value)||95)} className='w-24 rounded-lg border px-2 py-1' />
+              <input
+                type='number'
+                min={50}
+                max={99.9}
+                step={0.5}
+                value={pctl}
+                onChange={e=>setPctl(Number(e.target.value)||95)}
+                className='w-24 rounded-lg border px-2 py-1'
+                style={{ fontSize: 'inherit' }}
+              />
+              <button type='button' className='px-2 py-1 rounded border ml-1' onClick={()=>setPctl(v=>Math.min(99.9, Math.round((v+0.5)*10)/10))}>⮝</button>
+              <button type='button' className='px-2 py-1 rounded border' onClick={()=>setPctl(v=>Math.max(50, Math.round((v-0.5)*10)/10))}>⮟</button>
             </label>
             <br />
+            <div style={{ height: '18px' }}></div>
           </>
         )}
 
@@ -492,24 +519,34 @@ const coord2idx = (c_mm, n, axis) => {
       )}
 
       {!!nx && (
-        <div className='grid grid-cols-3 gap-3' style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
-          {sliceConfigs.map(({ key, name, axisLabel, index, setIndex, max, canvasRef }) => (
-            <div key={key} className='flex flex-col gap-2'>
-              <div className='text-xs text-gray-600'>{name} ({axisLabel})</div>
-              <div className='flex items-center gap-2'>
-                <canvas ref={canvasRef} className='h-64 w-full rounded-xl border' onClick={(e)=>onCanvasClick(e, key)} style={{ cursor: 'crosshair' }} />
+          <div style={{ marginTop: '18px' }}>
+          <div className='grid grid-cols-3' style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6 }}>
+            {sliceConfigs.map(({ key, name, axisLabel, index, setIndex, max, canvasRef }) => (
+              <div key={key} className='flex flex-col gap-2'>
+                <div className='text-xs text-gray-600'>{name} ({axisLabel})</div>
+                <div className='flex items-center'>
+                  <canvas ref={canvasRef} className='h-64 rounded-xl border' style={{ cursor: 'crosshair', width: '95px', minWidth: '95px', maxWidth: '95px', display: 'block' }} onClick={(e)=>onCanvasClick(e, key)} />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
       {/* map generation params */}
       <div className='rounded-xl border p-3 text-sm'>
-        <label className='flex flex-col'>Gaussian FWHM:
-          <input type='number' step='0.5' value={fwhm} onChange={e=>setFwhm(Number(e.target.value)||0)} className='w-28 rounded-lg border px-2 py-1'/>
-          <br />
+        <label className='flex items-center gap-2'>Gaussian FWHM:
+          <input
+            type='number'
+            step='0.5'
+            value={fwhm}
+            onChange={e=>setFwhm(Number(e.target.value)||0)}
+            className='w-28 rounded-lg border px-2 py-1'
+          />
+          <button type='button' className='px-2 py-1 rounded border ml-1' onClick={()=>setFwhm(v=>Math.round((v+0.5)*10)/10)}>⮝</button>
+          <button type='button' className='px-2 py-1 rounded border' onClick={()=>setFwhm(v=>Math.max(0, Math.round((v-0.5)*10)/10))}>⮟</button>
         </label>
+        <br />
       </div>
 
       {/* overlay controls */}

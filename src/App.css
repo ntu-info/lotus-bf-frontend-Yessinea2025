@@ -1,4 +1,30 @@
-
+/* Hide number input spinner arrows for Chrome, Safari, Edge */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Hide number input spinner arrows for Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.results-dropdown {
+  width: 40px !important;
+  height: 20px !important;
+  font-size: 14px !important;
+  padding: 2px 2px !important;
+  border-radius: 6px !important;
+  border: 1px solid #ccc !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+}
+/* Custom gap for NIfTI Viewer images row */
+.nii-images-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10 px; /* Adjust this value for desired spacing */
+}
 /* App.css baseline (hoverless look is enforced inline in App.jsx too) */
 :root {
   --bg: #fafafa;
@@ -14,7 +40,14 @@
 }
 
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; }
+
+html, body, #root {
+  height: auto; /* 100vh; */
+  width: 100%;
+  margin: 0;
+  overflow: auto; /* hidden; */ /* 防止整頁捲動 */
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -22,31 +55,134 @@ body {
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
+/* -------------------- app 主容器 -------------------- */
 .app {
-  max-width: none;
-  margin: 0;
-  padding: 18px 0 18px 18px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* 讓內容（app__grid）在垂直方向置中 */
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg);
 }
 
-.app__header { margin-bottom: 14px; }
-.app__title { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: .2px; }
-.app__subtitle { margin-top: 4px; color: var(--muted); font-size: 13px; }
+/* -------------------- 標題：固定左上角 -------------------- */
+.app__header {
+  position: absolute;
+  top: 20px;
+  left: 28px;
+  margin: 0;
+  z-index: 10;
+}
+.app__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+.app__subtitle {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px; 
+}
 
-.app__grid { display: flex; gap: 0; width: 100%; }
-.app__grid > .card { flex: 1 1 0; min-width: 240px; overflow: auto; }
+/* -------------------- 主內容三框 -------------------- */
+.app__grid {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  width: 100vw;
+  max-width: 100vw;
+  height: 88vh;
+  gap: 10px;
+  overflow: hidden;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 30px;
+  padding-right: 30px;
+  box-sizing: border-box;
+}
 
-.resizer { width: 8px; cursor: col-resize; position: relative; user-select: none; touch-action: none; align-self: stretch; background: transparent; }
-.resizer::after { content:''; position:absolute; top:0; bottom:0; left:3px; width:2px; background: var(--border); transition: background .15s ease; }
+/* 卡片樣式 */
+.app__grid > .card {
+  overflow: auto;
+  height: 100%;
+  border: 1px solid var(--border);
+  background: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+
+/* 三框比例：1 : 2 : 1 (NIfTI Viewer same as Terms) */
+@media (min-width: 1024px) {
+  .app__grid > .card:nth-child(1) { width: 250px; flex: 0 0 auto !important; }
+}
+
+/* Keep panel widths for desktop, but allow stacking on mobile */
+.app__grid > .card:nth-child(1) { width: 250px; flex: 0 0 auto !important; }
+.app__grid > .card:nth-child(3) { flex: 2; min-width: 360px; }
+.app__grid > .card:nth-child(5) { width: 320px; flex: 0 0 auto !important; }
+
+/* Hide the resizer between middle and right panels */
+/*.app__grid > .resizer[aria-label="Resize middle/right"] { display: none !important; }
+
+/* 分隔線（保留拖曳功能） */
+.resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  user-select: none;
+  touch-action: none;
+  align-self: stretch;
+  position: relative;
+}
+.resizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  width: 2px;
+  background: var(--border);
+  transition: background .15s ease;
+}
 .resizer:hover::after { background: #9ca3af; }
 
-.card { background:white; border:1px solid var(--border); border-radius: var(--radius); padding:12px; }
+/* Horizontal resizer for mobile */
+.resizer-horizontal {
+  width: 100%;
+  height: 8px;
+  cursor: row-resize;
+  background: transparent;
+  position: relative;
+  z-index: 2;
+}
+.resizer-horizontal::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 3px;
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+}
+.resizer-horizontal:hover::after {
+  background: #9ca3af;
+}
+
+/* -------------------- 其他元件維持原樣 -------------------- */
+.card { background:white; border:1px solid var(--border); border-radius: var(--radius); padding:8px; font-size: 14px; }
 .card__title { font-weight:600; margin-bottom:10px; }
 .card--stack > .divider { height:1px; background:var(--border); margin:12px 0; }
 
 .hint { margin-top: 8px; color: var(--muted); font-size: 12px; }
 .hint__code { background:#f3f4f6; padding:2px 6px; border-radius:8px; }
 
-/* Downsized buttons (no hover/active change) */
+/* Buttons */
 button, .btn, [role="button"], .button {
   background: var(--primary-600);
   color:#fff;
@@ -71,16 +207,64 @@ button:disabled, .btn:disabled { opacity:.55; cursor:not-allowed; }
 .card select,
 .card textarea { width:100%; max-width:100%; display:block; }
 
-.app__footer { margin-top:16px; color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; border-top:1px solid var(--border); padding-top:12px; }
-
-@media (max-width: 1023px) {
-  .app { padding: 12px; }
-  .app__grid { flex-direction: column; }
-  .resizer { display: none; }
+.app__footer {
+  margin-top:16px;
+  color:var(--muted);
+  font-size:12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  border-top:1px solid var(--border);
+  padding-top:12px;
 }
 
+/* -------------------- 響應式 -------------------- */
+@media (max-width: 1023px) {
+  .app {
+    height: auto !important; 
+    overflow: visible !important; 
+    justify-content: flex-start !important; 
+    padding: 12px;
+  }
 
-/* QueryBuilder fallback styles (when Tailwind classes are not present) */
+  .app__header {
+    position: relative !important;
+    margin-bottom: 8px;
+    top: 0;
+    left: 0;
+    padding: 8px 16px;
+    background: white;
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app__grid {
+    margin-top: 0 !important; 
+    height: auto !important; 
+    flex-direction: column !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+
+  .app__grid > .card:nth-child(1),
+  .app__grid > .card:nth-child(3),
+  .app__grid > .card:nth-child(5) {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: none !important;
+    margin-bottom: 8px !important;
+    padding: 12px !important;
+  }
+
+  .resizer {
+    display: none !important;
+  }
+}
+
+/* QueryBuilder fallback styles */
 .qb__input {
   width: 100%;
   max-width: 100%;
@@ -90,11 +274,9 @@ button:disabled, .btn:disabled { opacity:.55; cursor:not-allowed; }
   border-radius: 12px;
   outline: none;
 }
-
 .qb__input:focus {
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
 }
-
 
 /* Ensure QueryBuilder input doesn't collapse too narrow */
 .qb { width: 100%; }
