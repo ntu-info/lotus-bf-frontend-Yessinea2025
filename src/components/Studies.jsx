@@ -1,5 +1,5 @@
 import { API_BASE } from '../api'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import Select from 'react-select';
 import { FaRegStar, FaStar, FaTrashAlt } from 'react-icons/fa';
 
@@ -41,6 +41,7 @@ export function Studies ({ query }) {
     }
   }
   const [rows, setRows] = useState([])
+  const topRef = useRef(null);
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState('')
   const [sortKey, setSortKey] = useState('year')
@@ -99,7 +100,7 @@ export function Studies ({ query }) {
   const pageRows = sorted.slice((page - 1) * pageSize, page * pageSize)
 
   return (
-    <div className='flex flex-col rounded-2xl border' style={{ position: 'relative' }}>
+    <div ref={topRef} className='flex flex-col rounded-2xl border' style={{ position: 'relative' }}>
       {/* My Favorite Panel */}
       <div style={{ position: 'absolute', top: 12, right: 24, zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -315,10 +316,10 @@ export function Studies ({ query }) {
         <div className='flex items-center justify-between border-t p-3 text-sm'>
           <div>Page <b>{page}</b>/<b>{totalPages}</b></div>
           <div className='flex items-center gap-2'>
-            <button disabled={page <= 1} onClick={() => setPage(1)} className='rounded-lg border px-2 py-1 disabled:opacity-40'>{'<<'}</button>
-            <button disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className='rounded-lg border px-2 py-1 disabled:opacity-40'>Previous</button>
-            <button disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className='rounded-lg border px-2 py-1 disabled:opacity-40'>Next</button>
-            <button disabled={page >= totalPages} onClick={() => setPage(totalPages)} className='rounded-lg border px-2 py-1 disabled:opacity-40'>{'>>'}</button>
+            <button disabled={page <= 1} onClick={() => { setPage(1); setTimeout(() => { topRef.current?.scrollIntoView({ behavior: 'smooth' }); }, 0); }} className='rounded-lg border px-2 py-1 disabled:opacity-40'>{'<<'}</button>
+            <button disabled={page <= 1} onClick={() => { setPage(p => { const np = Math.max(1, p - 1); setTimeout(() => { topRef.current?.scrollIntoView({ behavior: 'smooth' }); }, 0); return np; }); }} className='rounded-lg border px-2 py-1 disabled:opacity-40'>Previous</button>
+            <button disabled={page >= totalPages} onClick={() => { setPage(p => { const np = Math.min(totalPages, p + 1); setTimeout(() => { topRef.current?.scrollIntoView({ behavior: 'smooth' }); }, 0); return np; }); }} className='rounded-lg border px-2 py-1 disabled:opacity-40'>Next</button>
+            <button disabled={page >= totalPages} onClick={() => { setPage(totalPages); setTimeout(() => { topRef.current?.scrollIntoView({ behavior: 'smooth' }); }, 0); }} className='rounded-lg border px-2 py-1 disabled:opacity-40'>{'>>'}</button>
           </div>
         </div>
       )}
